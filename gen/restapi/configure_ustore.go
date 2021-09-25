@@ -8,12 +8,13 @@ import (
 	"ustore/db/mysql"
 	"ustore/handlers"
 	"ustore/service"
-	"ustore/service/auth"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime/middleware"
 
 	"ustore/gen/restapi/operations"
+	"ustore/gen/restapi/operations/signup"
 )
 
 //go:generate swagger generate server --target ../../gen --name Ustore --spec ../../swagger.yml --principal interface{} --exclude-main
@@ -44,12 +45,13 @@ func configureAPI(api *operations.UstoreAPI) http.Handler {
 	db := client.BuildSqlClient()
 	serviceInfoHandle := service.NewServiceInfoHandler()
 
-	api.BearerAuth = auth.ValidateHeader
 	api.SignupSignupHandler = handlers.NewSignUpHandler(db, serviceInfoHandle)
-    api.LoginLoginHandler = handlers.NewLoginHandler(db, serviceInfoHandle)
-	api.UserProfileHandler = handlers.NewProfileHandler(db, serviceInfoHandle)
-    api.ItemItemsHandler = handlers.NewItemHandler(db, serviceInfoHandle)
 
+	if api.SignupSignupHandler == nil {
+		api.SignupSignupHandler = signup.SignupHandlerFunc(func(params signup.SignupParams) middleware.Responder {
+			return middleware.NotImplemented("operation signup.Signup has not yet been implemented")
+		})
+	}
 
 	api.PreServerShutdown = func() {}
 

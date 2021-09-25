@@ -3,7 +3,6 @@ module ustore
 go 1.17
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-openapi/errors v0.20.1
 	github.com/go-openapi/loads v0.20.2
 	github.com/go-openapi/runtime v0.19.31
@@ -11,10 +10,9 @@ require (
 	github.com/go-openapi/strfmt v0.20.2
 	github.com/go-openapi/swag v0.19.15
 	github.com/go-openapi/validate v0.20.2
-	github.com/go-sql-driver/mysql v1.6.0
-	github.com/google/martian v2.1.0+incompatible
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/jessevdk/go-flags v1.5.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/net v0.0.0-20210924151903-3ad01bbaa167
 )
 
