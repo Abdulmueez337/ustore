@@ -1,0 +1,68 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "ustore"
+host: "localhost:8080"
+basePath: "/v1"
+schemes:
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+
+paths:
+  /signup:
+    post:
+      description: 'To register a new user'
+      operationId: "signup"
+      tags:
+      - "signup"
+      parameters:
+        - in: 'body'
+          name: 'signup'
+          description: 'signup model'
+          required: true
+          schema:
+            $ref: '#/definitions/SignUp'
+      responses:
+        200:
+          description: Successful registeration
+          schema:
+            $ref: '#/definitions/SignUpResponse'
+        400:
+          description: Bad Request
+        404:
+          schema:
+            type: string
+          description: User not found
+        500:
+          schema:
+            type: string
+          description: Server error
+definitions:
+  SignUp:
+    type: object
+    required: [email,first_name,password,username]
+    properties:
+      first_name:
+        type: string
+      middle_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+      profile_image:
+        type: string
+  SignUpResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      message:
+        type: string
