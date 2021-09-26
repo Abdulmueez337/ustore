@@ -7,6 +7,7 @@ import (
 
 type ServiceInfoHandler interface {
 	Registration(db *sql.DB, userInfo *models.SignUp) error
+	UserLogin(db *sql.DB, email string, password string) (string, error)
 }
 
 type service struct{}

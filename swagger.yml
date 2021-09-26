@@ -11,10 +11,16 @@ consumes:
 produces:
   - "application/json"
 
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+
 paths:
   /signup:
     post:
-      description: 'To register a new user'
+      description: "To register a new user"
       operationId: "signup"
       tags:
       - "signup"
@@ -40,6 +46,36 @@ paths:
           schema:
             type: string
           description: Server error
+
+  /login:
+    post:
+      description: 'Returns token for authorized User'
+      operationId: "login"
+      tags:
+        - "login"
+      parameters:
+        - in: 'body'
+          name: 'login'
+          required: true
+          description: "login model"
+          schema:
+            $ref: "#/definitions/Login"
+      responses:
+        200:
+          description: Successful login
+          schema:
+            $ref: '#/definitions/LoginSuccess'
+        400:
+          description: Bad Request
+        404:
+          schema:
+            type: string
+          description: User not found
+        500:
+          schema:
+            type: string
+          description: Server error
+
 definitions:
   SignUp:
     type: object
@@ -65,4 +101,19 @@ definitions:
       success:
         type: boolean
       message:
+        type: string
+  Login:
+    type: object
+    required: [email,password]
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+  LoginSuccess:
+    type: object
+    properties:
+      success:
+        type: boolean
+      token:
         type: string
