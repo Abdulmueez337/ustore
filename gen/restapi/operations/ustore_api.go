@@ -19,6 +19,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
+	"ustore/gen/restapi/operations/login"
 	"ustore/gen/restapi/operations/signup"
 )
 
@@ -44,6 +45,9 @@ func NewUstoreAPI(spec *loads.Document) *UstoreAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		LoginLoginHandler: login.LoginHandlerFunc(func(params login.LoginParams) middleware.Responder {
+			return middleware.NotImplemented("operation login.Login has not yet been implemented")
+		}),
 		SignupSignupHandler: signup.SignupHandlerFunc(func(params signup.SignupParams) middleware.Responder {
 			return middleware.NotImplemented("operation signup.Signup has not yet been implemented")
 		}),
@@ -83,6 +87,8 @@ type UstoreAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// LoginLoginHandler sets the operation handler for the login operation
+	LoginLoginHandler login.LoginHandler
 	// SignupSignupHandler sets the operation handler for the signup operation
 	SignupSignupHandler signup.SignupHandler
 
@@ -162,6 +168,9 @@ func (o *UstoreAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.LoginLoginHandler == nil {
+		unregistered = append(unregistered, "login.LoginHandler")
+	}
 	if o.SignupSignupHandler == nil {
 		unregistered = append(unregistered, "signup.SignupHandler")
 	}
@@ -253,6 +262,10 @@ func (o *UstoreAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/login"] = login.NewLogin(o.context, o.LoginLoginHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

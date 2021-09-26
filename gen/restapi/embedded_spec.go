@@ -35,6 +35,49 @@ func init() {
   "host": "localhost:8080",
   "basePath": "/v1",
   "paths": {
+    "/login": {
+      "post": {
+        "description": "Returns token for authorized User",
+        "tags": [
+          "login"
+        ],
+        "operationId": "login",
+        "parameters": [
+          {
+            "description": "login model",
+            "name": "login",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Login"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "schema": {
+              "$ref": "#/definitions/LoginSuccess"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "/signup": {
       "post": {
         "description": "To register a new user",
@@ -80,6 +123,32 @@ func init() {
     }
   },
   "definitions": {
+    "Login": {
+      "type": "object",
+      "required": [
+        "email",
+        "password"
+      ],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "LoginSuccess": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
     "SignUp": {
       "type": "object",
       "required": [
@@ -122,6 +191,13 @@ func init() {
           "type": "boolean"
         }
       }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }`))
@@ -143,6 +219,49 @@ func init() {
   "host": "localhost:8080",
   "basePath": "/v1",
   "paths": {
+    "/login": {
+      "post": {
+        "description": "Returns token for authorized User",
+        "tags": [
+          "login"
+        ],
+        "operationId": "login",
+        "parameters": [
+          {
+            "description": "login model",
+            "name": "login",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Login"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "schema": {
+              "$ref": "#/definitions/LoginSuccess"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "/signup": {
       "post": {
         "description": "To register a new user",
@@ -188,6 +307,32 @@ func init() {
     }
   },
   "definitions": {
+    "Login": {
+      "type": "object",
+      "required": [
+        "email",
+        "password"
+      ],
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      }
+    },
+    "LoginSuccess": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "token": {
+          "type": "string"
+        }
+      }
+    },
     "SignUp": {
       "type": "object",
       "required": [
@@ -230,6 +375,13 @@ func init() {
           "type": "boolean"
         }
       }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }`))
