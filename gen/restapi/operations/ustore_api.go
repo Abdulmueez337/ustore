@@ -19,7 +19,9 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
+	"ustore/gen/restapi/operations/login"
 	"ustore/gen/restapi/operations/signup"
+	"ustore/gen/restapi/operations/user"
 )
 
 // NewUstoreAPI creates a new Ustore instance
@@ -44,9 +46,22 @@ func NewUstoreAPI(spec *loads.Document) *UstoreAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		LoginLoginHandler: login.LoginHandlerFunc(func(params login.LoginParams) middleware.Responder {
+			return middleware.NotImplemented("operation login.Login has not yet been implemented")
+		}),
+		UserProfileHandler: user.ProfileHandlerFunc(func(params user.ProfileParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation user.Profile has not yet been implemented")
+		}),
 		SignupSignupHandler: signup.SignupHandlerFunc(func(params signup.SignupParams) middleware.Responder {
 			return middleware.NotImplemented("operation signup.Signup has not yet been implemented")
 		}),
+
+		// Applies when the "Authorization" header is set
+		BearerAuth: func(token string) (interface{}, error) {
+			return nil, errors.NotImplemented("api key auth (Bearer) Authorization from header param [Authorization] has not yet been implemented")
+		},
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -83,6 +98,17 @@ type UstoreAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// BearerAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key Authorization provided in the header
+	BearerAuth func(string) (interface{}, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
+
+	// LoginLoginHandler sets the operation handler for the login operation
+	LoginLoginHandler login.LoginHandler
+	// UserProfileHandler sets the operation handler for the profile operation
+	UserProfileHandler user.ProfileHandler
 	// SignupSignupHandler sets the operation handler for the signup operation
 	SignupSignupHandler signup.SignupHandler
 
@@ -162,6 +188,16 @@ func (o *UstoreAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.BearerAuth == nil {
+		unregistered = append(unregistered, "AuthorizationAuth")
+	}
+
+	if o.LoginLoginHandler == nil {
+		unregistered = append(unregistered, "login.LoginHandler")
+	}
+	if o.UserProfileHandler == nil {
+		unregistered = append(unregistered, "user.ProfileHandler")
+	}
 	if o.SignupSignupHandler == nil {
 		unregistered = append(unregistered, "signup.SignupHandler")
 	}
@@ -180,12 +216,21 @@ func (o *UstoreAPI) ServeErrorFor(operationID string) func(http.ResponseWriter, 
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *UstoreAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name := range schemes {
+		switch name {
+		case "Bearer":
+			scheme := schemes[name]
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.BearerAuth)
+
+		}
+	}
+	return result
 }
 
 // Authorizer returns the registered authorizer
 func (o *UstoreAPI) Authorizer() runtime.Authorizer {
-	return nil
+	return o.APIAuthorizer
 }
 
 // ConsumersFor gets the consumers for the specified media types.
@@ -253,6 +298,14 @@ func (o *UstoreAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/login"] = login.NewLogin(o.context, o.LoginLoginHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/user/profile"] = user.NewProfile(o.context, o.UserProfileHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
