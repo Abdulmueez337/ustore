@@ -1,214 +1,134 @@
-# Login - EntryPoint
+# ViewProfile - EntryPoint
 
-We continue the same signup entrypoint and add login api for the ustore microservice.
-First we generate code for our login entrypoint as we did for signup api.
+The third entrypoint is ViewUserProfile.
+To generate code for ViewProfile API, swagger.yml file is updated accordingly for path and model definitions.
 <b>swagger.yml</b>
 ```
-// defining JWT for later use
-securityDefinitions:
-  Bearer:
-    type: apiKey
-    name: Authorization
-    in: header
-    
-// login path
- /login:
-    post:
-      description: 'Returns token for authorized User'
-      operationId: "login"
+ //path
+ /user/profile:
+    get:
+      description: "To show user details"
+      operationId: "profile"
       tags:
-        - "login"
-      parameters:
-        - in: 'body'
-          name: 'login'
-          required: true
-          description: "login model"
-          schema:
-            $ref: "#/definitions/Login"
+        - "User"
+      security:
+        - Bearer: []
       responses:
         200:
-          description: Successful login
+          description: "Success response when item is added successfully"
           schema:
-            $ref: '#/definitions/LoginSuccess'
+            $ref: "#/definitions/Profile"
         400:
           description: Bad Request
         404:
-          schema:
-            type: string
           description: User not found
         500:
           schema:
             type: string
           description: Server error
-
-// Login and LoginSuccess model definitions
-  LoginInfo:
+          
+// model definition
+  Profile:
     type: object
-    required: [email,password]
     properties:
+      first_name:
+        type: string
+      middle_name:
+        type: string
+      last_name:
+        type: string
       email:
         type: string
-      password:
+      username:
         type: string
-  LoginSuccess:
-    type: object
-    properties:
-      success:
-        type: boolean
-      token:
+      profile_image:
         type: string
 ```
 
-Now we again generate the code in gen directory for our login entrypoint with following command.
+Now we again generate the code in gen directory for the ViewProfile entrypoint with following command.
 ```
 swagger generate server -t gen -f ./swagger.yml --default-scheme http --exclude-main
 
 // to install dependencies
 go get -u -f ./gen/...
 ```
-Before implementing the login in service layer, authentication JWT is required to implement in the service layer.
-<b>ustore/service/auth/autherization.go</b>
-```
-package auth
 
-import (
-	//"ustore-server/constants"
-	"errors"
-	"fmt"
-	"github.com/google/martian/log"
-	"github.com/dgrijalva/jwt-go"
-	"strings"
-	"time"
-)
-
-func ValidateHeader(bearerHeader string) (interface{}, error) {
-	bearerToken := strings.Split(bearerHeader, " ")[1]
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(bearerToken, claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("error decoding token")
-		}
-		return []byte("123123123123123"), nil
-	})
-	if err != nil {
-		log.Errorf(err.Error())
-		return nil, err
-	}
-	if token.Valid {
-		return claims["user"].(string), nil
-	}
-	return nil, errors.New("invalid token")
-}
-
-func GenerateJWT(userEmail string) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-
-	claims["authorized"] = true
-	claims["user"] = userEmail
-	claims["exp"] = time.Now().Add(time.Minute * 300).Unix()
-	/*
-	 Please note that in real world, we need to move "some_secret_key_val_123123" into something like
-	 "secret.json" file of Kubernetes etc
-	*/
-	tokenString, err := token.SignedString([]byte("123123123123123"))
-	if err != nil {
-		fmt.Println("reached")
-		return "", err
-	}
-	return tokenString, nil
-}
-```
-
-As we are directly hitting database from service layer, Thus login.go file is created in service directory and implement the login function. Also include the UserLogin function in the service interface in <b>ustore/service/service.go</b>
-<b>ustore/service/login.go</b>
+As we are directly hitting database from service layer, Thus profile.go file is created in service directory and implemented ViewProfile function. Also add the ViewProfile function in the service interface in <b>ustore/service/service.go</b>
+<b>ustore/service/profile.go</b>
 ```
 package service
 
 import (
 	"database/sql"
-	"fmt"
 	"ustore/gen/models"
-	"ustore/service/auth"
-	//	"errors"
-	"golang.org/x/crypto/bcrypt"
 
 )
 
-func (c *service) UserLogin(db *sql.DB, email string, password string) (string, error) {
-	row := db.QueryRow("SELECT email, password from user where email=?", email)
-	userInfo := models.Login{}
+func (c *service) ViewProfile(db *sql.DB, email string) (*models.Profile, error) {
+	row := db.QueryRow("SELECT email, username, first_name, middle_name, last_name, profile_image from user where email=?", email)
+	userInfo := models.Profile{}
 
 	err := row.Scan(&userInfo.Email,
-		&userInfo.Password)
+		&userInfo.Username,
+		&userInfo.FirstName,
+		&userInfo.MiddleName,
+		&userInfo.LastName,
+		&userInfo.ProfileImage)
 	if err != nil {
-		return "", err
+		return &userInfo, err
 	}
 
-	//decrypt the hashed-password and compare
-	err = bcrypt.CompareHashAndPassword([]byte(*userInfo.Password), []byte(password))
-	if err != nil {
-		fmt.Println(err)
-		return "",err
-	}
-	token, err := auth.GenerateJWT(email)
-	if err != nil {
-		fmt.Println("error defining token")
-		return "",err
-	}
-	return token, nil
+	return &userInfo, nil
 
 }
 ```
 
-The login-handler hits the UserLogin function in service layer as following.
+The profile handler hits the ViewProfile function in service layer as following.
 ```
 package handlers
 
 import (
 	"database/sql"
-	"ustore/gen/models"
-	"ustore/gen/restapi/operations/login"
+	"ustore/gen/restapi/operations/user"
 	"ustore/service"
 	"fmt"
 	"github.com/go-openapi/runtime/middleware"
-
+	"ustore/service/auth"
 )
 
-type Login struct {
+type Profile struct {
 	dbClient            *sql.DB
 	serviceInfoHandler service.ServiceInfoHandler
 }
 
-func NewLoginHandler(db *sql.DB, serviceInfoHandler service.ServiceInfoHandler) login.LoginHandler {
-	return &Login{
+func NewProfileHandler(db *sql.DB, serviceInfoHandler service.ServiceInfoHandler) user.ProfileHandler{
+	return &Profile{
 		dbClient: db,
 		serviceInfoHandler: serviceInfoHandler,
 	}
 }
 
-func (impl *Login) Handle(params login.LoginParams) middleware.Responder {
-	email := *params.Login.Email
-	password := *params.Login.Password
-	token, err := impl.serviceInfoHandler.UserLogin(impl.dbClient, email, password)
+func (p *Profile) Handle(params user.ProfileParams, principal interface{}) middleware.Responder {
+	email, err := auth.ValidateHeader(params.HTTPRequest.Header.Get("Authorization"))
+	if err != nil {
+		return user.NewProfileInternalServerError().WithPayload("error in parsing token")
+	}
+    userInfo, err := p.serviceInfoHandler.ViewProfile(p.dbClient, email.(string))
 	if err != nil {
 		fmt.Println(err.Error())
-		return login.NewLoginInternalServerError().WithPayload("Error fetching user details")
+		return user.NewProfileInternalServerError().WithPayload("Error fetching user details")
 	}
-	return login.NewLoginOK().WithPayload(&models.LoginSuccess{Success: true, Token: token})
+	return user.NewProfileOK().WithPayload(userInfo)
 }
+
 ```
 Finally, the handler is called in configureAPI function <b>ustore/gen/restapi/operation/configure_ustore.go</b>
 ```
-
-    api.LoginLoginHandler = handlers.NewLoginHandler(db, serviceInfoHandle)
+api.UserProfileHandler = handlers.NewProfileHandler(db, serviceInfoHandle)
 ```
 
 #### Testing
 
-
-![](https://i.imgur.com/VsQbCAi.png)
-
-![](https://i.imgur.com/cIRsPch.png)
+![](https://i.imgur.com/HtARYwC.png)
 
 
