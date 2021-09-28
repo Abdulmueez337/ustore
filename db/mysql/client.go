@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"ustore/config"
 )
 
 type client struct {
@@ -15,8 +16,8 @@ func NewClient() client {
 }
 
 func (b client) BuildSqlClient() *sql.DB {
-	// sensitive info can be stored in "secrets.json" of GKE
-	db, err := sql.Open("mysql", "simsim:MYpassword100@/ustore?parseTime=True")
+	// database connection configuration
+	db, err := sql.Open("mysql", config.UserName+":"+config.Password+"@/"+config.DbSchema+"?parseTime=True" )
 	if err != nil {
 		log.Fatal("error connecting DB : ", err.Error())
 	}

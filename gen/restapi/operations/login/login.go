@@ -31,7 +31,7 @@ func NewLogin(ctx *middleware.Context, handler LoginHandler) *Login {
 
 /* Login swagger:route POST /login login login
 
-Returns token for authorized User
+To authenticate user with token
 
 */
 type Login struct {

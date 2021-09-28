@@ -35,9 +35,91 @@ func init() {
   "host": "localhost:8080",
   "basePath": "/v1",
   "paths": {
+    "/item/subscribe": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "To subscribe an available item",
+        "tags": [
+          "item"
+        ],
+        "operationId": "subscribe",
+        "parameters": [
+          {
+            "description": "subscription model",
+            "name": "subscribe",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Subscribe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Subscription",
+            "schema": {
+              "$ref": "#/definitions/SubscriptionResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Item not found",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/items": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "To show available items",
+        "tags": [
+          "item"
+        ],
+        "operationId": "items",
+        "responses": {
+          "200": {
+            "description": "Success response when items are shown",
+            "schema": {
+              "$ref": "#/definitions/Products"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "items not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "/login": {
       "post": {
-        "description": "Returns token for authorized User",
+        "description": "To authenticate user with token",
         "tags": [
           "login"
         ],
@@ -120,6 +202,40 @@ func init() {
           }
         }
       }
+    },
+    "/user/profile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "To show user details",
+        "tags": [
+          "User"
+        ],
+        "operationId": "profile",
+        "responses": {
+          "200": {
+            "description": "Success response when item is added successfully",
+            "schema": {
+              "$ref": "#/definitions/Profile"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -145,6 +261,55 @@ func init() {
           "type": "boolean"
         },
         "token": {
+          "type": "string"
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "available_items": {
+          "type": "integer"
+        },
+        "item_details": {
+          "type": "string"
+        },
+        "item_name": {
+          "type": "string"
+        },
+        "monthly_price": {
+          "type": "number"
+        },
+        "yearly_price": {
+          "type": "number"
+        }
+      }
+    },
+    "Products": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Product"
+      }
+    },
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "middle_name": {
+          "type": "string"
+        },
+        "profile_image": {
+          "type": "string"
+        },
+        "username": {
           "type": "string"
         }
       }
@@ -185,6 +350,36 @@ func init() {
       "type": "object",
       "properties": {
         "message": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Subscribe": {
+      "type": "object",
+      "required": [
+        "subs_price",
+        "item_id"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "boolean",
+          "default": true
+        },
+        "subs_price": {
+          "type": "number"
+        }
+      }
+    },
+    "SubscriptionResponse": {
+      "type": "object",
+      "properties": {
+        "Message": {
           "type": "string"
         },
         "success": {
@@ -219,9 +414,91 @@ func init() {
   "host": "localhost:8080",
   "basePath": "/v1",
   "paths": {
+    "/item/subscribe": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "To subscribe an available item",
+        "tags": [
+          "item"
+        ],
+        "operationId": "subscribe",
+        "parameters": [
+          {
+            "description": "subscription model",
+            "name": "subscribe",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Subscribe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Subscription",
+            "schema": {
+              "$ref": "#/definitions/SubscriptionResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "Item not found",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "/items": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "To show available items",
+        "tags": [
+          "item"
+        ],
+        "operationId": "items",
+        "responses": {
+          "200": {
+            "description": "Success response when items are shown",
+            "schema": {
+              "$ref": "#/definitions/Products"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "items not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
     "/login": {
       "post": {
-        "description": "Returns token for authorized User",
+        "description": "To authenticate user with token",
         "tags": [
           "login"
         ],
@@ -304,6 +581,40 @@ func init() {
           }
         }
       }
+    },
+    "/user/profile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "To show user details",
+        "tags": [
+          "User"
+        ],
+        "operationId": "profile",
+        "responses": {
+          "200": {
+            "description": "Success response when item is added successfully",
+            "schema": {
+              "$ref": "#/definitions/Profile"
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -329,6 +640,55 @@ func init() {
           "type": "boolean"
         },
         "token": {
+          "type": "string"
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "available_items": {
+          "type": "integer"
+        },
+        "item_details": {
+          "type": "string"
+        },
+        "item_name": {
+          "type": "string"
+        },
+        "monthly_price": {
+          "type": "number"
+        },
+        "yearly_price": {
+          "type": "number"
+        }
+      }
+    },
+    "Products": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Product"
+      }
+    },
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        },
+        "middle_name": {
+          "type": "string"
+        },
+        "profile_image": {
+          "type": "string"
+        },
+        "username": {
           "type": "string"
         }
       }
@@ -369,6 +729,36 @@ func init() {
       "type": "object",
       "properties": {
         "message": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Subscribe": {
+      "type": "object",
+      "required": [
+        "subs_price",
+        "item_id"
+      ],
+      "properties": {
+        "item_id": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "boolean",
+          "default": true
+        },
+        "subs_price": {
+          "type": "number"
+        }
+      }
+    },
+    "SubscriptionResponse": {
+      "type": "object",
+      "properties": {
+        "Message": {
           "type": "string"
         },
         "success": {

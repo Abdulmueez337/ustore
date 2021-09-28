@@ -23,7 +23,7 @@ paths:
       description: "To register a new user"
       operationId: "signup"
       tags:
-      - "signup"
+        - "signup"
       parameters:
         - in: 'body'
           name: 'signup'
@@ -49,7 +49,7 @@ paths:
 
   /login:
     post:
-      description: 'Returns token for authorized User'
+      description: 'To authenticate user with token'
       operationId: "login"
       tags:
         - "login"
@@ -71,6 +71,81 @@ paths:
           schema:
             type: string
           description: User not found
+        500:
+          schema:
+            type: string
+          description: Server error
+
+  /user/profile:
+    get:
+      description: "To show user details"
+      operationId: "profile"
+      tags:
+        - "User"
+      security:
+        - Bearer: []
+      responses:
+        200:
+          description: "Success response when item is added successfully"
+          schema:
+            $ref: "#/definitions/Profile"
+        400:
+          description: Bad Request
+        404:
+          description: User not found
+        500:
+          schema:
+            type: string
+          description: Server error
+
+  /items:
+    get:
+      description: "To show available items"
+      operationId: "items"
+      tags:
+        - "item"
+      security:
+        - Bearer: [ ]
+      responses:
+        200:
+          description: "Success response when items are shown"
+          schema:
+            $ref: "#/definitions/Products"
+        400:
+          description: Bad Request
+        404:
+          description: items not found
+        500:
+          schema:
+            type: string
+          description: Server error
+
+  /item/subscribe:
+    post:
+      description: 'To subscribe an available item'
+      operationId: "subscribe"
+      tags:
+        - "item"
+      security:
+        - Bearer: [ ]
+      parameters:
+        - in: 'body'
+          name: 'subscribe'
+          required: true
+          description: "subscription model"
+          schema:
+            $ref: "#/definitions/Subscribe"
+      responses:
+        200:
+          description: Successful Subscription
+          schema:
+            $ref: '#/definitions/SubscriptionResponse'
+        400:
+          description: Bad Request
+        404:
+          schema:
+            type: string
+          description: Item not found
         500:
           schema:
             type: string
@@ -116,4 +191,54 @@ definitions:
       success:
         type: boolean
       token:
+        type: string
+  Profile:
+    type: object
+    properties:
+      first_name:
+        type: string
+      middle_name:
+        type: string
+      last_name:
+        type: string
+      email:
+        type: string
+      username:
+        type: string
+      profile_image:
+        type: string
+  Products:
+    type: array
+    items:
+      $ref: "#/definitions/Product"
+  Product:
+    type: object
+    properties:
+      item_name:
+        type: string
+      item_details:
+        type: string
+      monthly_price:
+        type: number
+      yearly_price:
+        type: number
+      available_items:
+        type: integer
+  Subscribe:
+    type: object
+    required: [subs_price, item_id]
+    properties:
+      subs_price:
+        type: number
+      status:
+        type: boolean
+        default: true
+      item_id:
+        type: integer
+  SubscriptionResponse:
+    type: object
+    properties:
+      success:
+        type: boolean
+      Message:
         type: string

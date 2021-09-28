@@ -5,9 +5,10 @@ package restapi
 import (
 	"crypto/tls"
 	"net/http"
-	"ustore/db/mysql"
+/*	"ustore/db/mysql"
 	"ustore/handlers"
 	"ustore/service"
+	"ustore/service/auth"*/
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -39,13 +40,16 @@ func configureAPI(api *operations.UstoreAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	client := mysql.NewClient()
+/*	client := mysql.NewClient()
 	db := client.BuildSqlClient()
 	serviceInfoHandle := service.NewServiceInfoHandler()
 
+	api.BearerAuth = auth.ValidateHeader
 	api.SignupSignupHandler = handlers.NewSignUpHandler(db, serviceInfoHandle)
     api.LoginLoginHandler = handlers.NewLoginHandler(db, serviceInfoHandle)
-
+	api.UserProfileHandler = handlers.NewProfileHandler(db, serviceInfoHandle)
+    api.ItemItemsHandler = handlers.NewItemHandler(db, serviceInfoHandle)
+    api.ItemSubscribeHandler = handlers.NewSubscriptionHandler(db, serviceInfoHandle)*/
 
 	api.PreServerShutdown = func() {}
 

@@ -16,7 +16,6 @@ func (c *service) Registration(db *sql.DB, userInfo *models.SignUp) error {
 	if err != nil {
 		return err
 	}
-
 	//	err := User.AddUser(db, userInfo)
 	row, err := db.Exec(
 		"INSERT into user (email, first_name, last_name, middle_name, password, profile_image, username) values (?,?,?,?,?,?,?)",
@@ -34,5 +33,6 @@ func (c *service) Registration(db *sql.DB, userInfo *models.SignUp) error {
 	if count, _ := row.RowsAffected(); count != 1 {
 		return errors.New("Error inserting row value")
 	}
+
 	return nil
 }

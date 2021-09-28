@@ -1,13 +1,13 @@
 package auth
 
 import (
-	//"ustore-server/constants"
 	"errors"
 	"fmt"
 	"github.com/google/martian/log"
 	"github.com/dgrijalva/jwt-go"
 	"strings"
 	"time"
+	"ustore/config"
 )
 
 func ValidateHeader(bearerHeader string) (interface{}, error) {
@@ -17,7 +17,7 @@ func ValidateHeader(bearerHeader string) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("error decoding token")
 		}
-		return []byte("123123123123123"), nil
+		return config.JWTSecretKey, nil
 	})
 	if err != nil {
 		log.Errorf(err.Error())
@@ -40,7 +40,7 @@ func GenerateJWT(userEmail string) (string, error) {
 	 Please note that in real world, we need to move "some_secret_key_val_123123" into something like
 	 "secret.json" file of Kubernetes etc
 	*/
-	tokenString, err := token.SignedString([]byte("123123123123123"))
+	tokenString, err := token.SignedString(config.JWTSecretKey)
 	if err != nil {
 		fmt.Println("reached")
 		return "", err
